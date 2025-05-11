@@ -1,0 +1,38 @@
+name: Deploy Flutter Web to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # 또는 main, master 등 기본 브랜치 이름
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest # 빌드 환경을 지정합니다.
+    permissions:
+      contents: write # gh-pages 브랜치에 쓰기 권한 부여
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # 코드 가져오기
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2 # Flutter SDK 설정
+        with:
+          channel: 'stable' # 또는 특정 Flutter 버전 (예: '3.29.3')
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Flutter web
+        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
+        # 중요: --base-href 값은 저장소 이름으로 설정합니다.
+        # 만약 저장소 이름이 eatq-pwa 라면 /eatq-pwa/ 가 됩니다.
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web # 빌드된 웹 파일이 있는 디렉토리
+          # user_name: 'your-github-username' # 선택 사항
+          # user_email: 'your-github-email@example.com' # 선택 사항
+          # cname: yourcustomdomain.com # 만약 커스텀 도메인을 사용한다면
